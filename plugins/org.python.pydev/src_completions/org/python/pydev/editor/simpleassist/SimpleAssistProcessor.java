@@ -3,6 +3,9 @@
  * Licensed under the terms of the Eclipse Public License (EPL).
  * Please see the license.txt included with this distribution for details.
  * Any modifications to this file must keep this entire header intact.
+ * 
+ * Code for Cacheca model implementation for code completion included - Siddhika Cowlagi,  Vincent Hellendoorn , Premkumar T Devanbu
+ * 
  */
 /*
  * Created on 24/09/2005
@@ -10,7 +13,6 @@
 package org.python.pydev.editor.simpleassist;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.core.runtime.Assert;
@@ -32,7 +34,6 @@ import org.python.pydev.core.docutils.PySelection;
 import org.python.pydev.core.log.Log;
 import org.python.pydev.editor.IPySyntaxHighlightingAndCodeCompletionEditor;
 import org.python.pydev.editor.codecompletion.CompletionError;
-import org.python.pydev.editor.codecompletion.IPyCodeCompletion;
 import org.python.pydev.editor.codecompletion.PyCodeCompletionPreferencesPage;
 import org.python.pydev.editor.codecompletion.PyContentAssistant;
 import org.python.pydev.editor.codecompletion.PythonCompletionProcessor;
@@ -185,40 +186,40 @@ public class SimpleAssistProcessor implements IContentAssistProcessor {
     @Override
     public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
         try {
-            if (showDefault()) {
-                return defaultPythonProcessor.computeCompletionProposals(viewer, offset);
 
-            } else {
-                updateStatus();
-                IDocument doc = viewer.getDocument();
-                String[] strs = PySelection.getActivationTokenAndQual(doc, offset, false);
+            updateStatus();
+            IDocument doc = viewer.getDocument();
+            String[] strs = PySelection.getActivationTokenAndQual(doc, offset, false);
 
-                String activationToken = strs[0];
-                String qualifier = strs[1];
+            String activationToken = strs[0];
 
-                PySelection ps = edit.createPySelection();
-                if (ps == null) {
-                    return new ICompletionProposal[0];
-                }
-                List<ICompletionProposal> results = new ArrayList<ICompletionProposal>();
+            String qualifier = strs[1];
 
-                for (ISimpleAssistParticipant participant : participants) {
-                    results.addAll(participant.computeCompletionProposals(activationToken, qualifier, ps, edit, offset));
-                }
-
-                //don't matter the result... next time we won't ask for simple stuff
-                doCycle();
-                if (results.size() == 0) {
-                    if (!lastCompletionAutoActivated || defaultAutoActivated(viewer, offset)
-                            || useAutocompleteOnAllAsciiCharsCache) {
-                        return defaultPythonProcessor.computeCompletionProposals(viewer, offset);
-                    }
-                    return new ICompletionProposal[0];
-                } else {
-                    Collections.sort(results, IPyCodeCompletion.PROPOSAL_COMPARATOR);
-                    return results.toArray(new ICompletionProposal[0]);
-                }
+            PySelection ps = edit.createPySelection();
+            if (ps == null) {
+                return new ICompletionProposal[0];
             }
+            List<ICompletionProposal> results = new ArrayList<ICompletionProposal>();
+
+            for (ISimpleAssistParticipant participant : participants) {
+                results.addAll(participant.computeCompletionProposalsCacheca(activationToken, qualifier, ps, edit,
+                        offset, viewer));
+            }
+
+            //don't matter the result... next time we won't ask for simple stuff
+            doCycle();
+            if (results.size() == 0) {
+                if (!lastCompletionAutoActivated || defaultAutoActivated(viewer, offset)
+                        || useAutocompleteOnAllAsciiCharsCache) {
+                    ICompletionProposal temp[] = defaultPythonProcessor.computeCompletionProposals(viewer, offset);
+                    for (ICompletionProposal tp : temp) {
+                        results.add(tp);
+                    }
+                }
+
+            }
+            return results.toArray(new ICompletionProposal[0]);
+
         } catch (Exception e) {
             Log.log(e);
             CompletionError completionError = new CompletionError(e);

@@ -3,6 +3,9 @@
  * Licensed under the terms of the Eclipse Public License (EPL).
  * Please see the license.txt included with this distribution for details.
  * Any modifications to this file must keep this entire header intact.
+ * 
+ * Code for Cacheca model implementation for code completion included - Siddhika Cowlagi,  Vincent Hellendoorn , Premkumar T Devanbu
+ * 
  */
 /*
  * Created on 24/09/2005
@@ -11,6 +14,7 @@ package org.python.pydev.editor.simpleassist;
 
 import java.util.Collection;
 
+import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.python.pydev.core.docutils.PySelection;
 import org.python.pydev.editor.IPySyntaxHighlightingAndCodeCompletionEditor;
@@ -30,5 +34,8 @@ public interface ISimpleAssistParticipant {
      */
     Collection<ICompletionProposal> computeCompletionProposals(String activationToken, String qualifier,
             PySelection ps, IPySyntaxHighlightingAndCodeCompletionEditor edit, int offset);
+
+    Collection<ICompletionProposal> computeCompletionProposalsCacheca(String activationToken, String qualifier,
+            PySelection ps, IPySyntaxHighlightingAndCodeCompletionEditor edit, int offset, ITextViewer viewer);
 
 }
